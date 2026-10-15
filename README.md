@@ -13,6 +13,16 @@
   <a href="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
+## Vorschau
+
+**Aktive Bewässerung: Rasen – schmal (350 px)**
+
+<img src="screenshots/irrigation-watering-350-light.png" width="350" alt="Rasen wird bewässert, Beete bleiben bereit, 350 px Kartenbreite, helles Theme">
+
+**Aktive Bewässerung: Rasen – breit (800 px)**
+
+<img src="screenshots/irrigation-watering-800-light.png" width="800" alt="Rasen wird bewässert, Beete bleiben bereit, 800 px Kartenbreite, helles Theme">
+
 ## Funktionen
 
 - Zonen werden direkt als **Hydrawise-Geräte** ausgewählt – mehrere Zonen über den nativen Geräte-Picker hinzufügen, entfernen und sortieren
