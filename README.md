@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-card/main/images/irrigation-card-logo-160.png" alt="Irrigation Card" width="160">
+</p>
+
 <h1 align="center">Irrigation Card</h1>
 
 <p align="center">

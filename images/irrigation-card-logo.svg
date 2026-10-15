@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-labelledby="t">
+  <title id="t">Irrigation Card</title>
+  <circle cx="256" cy="256" r="232" fill="#0a6070"/>
+  <rect x="150" y="372" width="100" height="22" rx="11" fill="#ffffff"/>
+  <rect x="184" y="296" width="32" height="80" rx="8" fill="#ffffff"/>
+  <rect x="166" y="262" width="68" height="44" rx="16" fill="#ffffff"/>
+  <rect x="226" y="244" width="54" height="20" rx="10" transform="rotate(-30 226 254)" fill="#ffffff"/>
+  <path d="M284 224 Q360 120 420 210" fill="none" stroke="#8fd3f4" stroke-width="12" stroke-linecap="round"/>
+  <path d="M286 232 Q380 160 444 262" fill="none" stroke="#8fd3f4" stroke-width="12" stroke-linecap="round"/>
+  <path d="M288 240 Q390 214 450 318" fill="none" stroke="#8fd3f4" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="420" cy="210" r="9" fill="#ffffff"/>
+  <circle cx="444" cy="262" r="9" fill="#ffffff"/>
+  <circle cx="450" cy="318" r="9" fill="#ffffff"/>
+</svg>
