@@ -6,7 +6,7 @@
 
 <p align="center">
   <strong>Version 1.1.3</strong><br>
-  <a href="https://github.com/BeGiBue/irrigation-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/irrigation-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
+  <a href="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
 ## Funktionen
@@ -23,7 +23,7 @@
 - Optionale Pumpe (z. B. `switch.gartenpumpe`) als Schalter direkt unter dem Titel – Zustand und Schalter am rechten Rand
 - Statistiken unter den Zonen: heute bewässert, Wasserverbrauch (nur wenn eine Verbrauchs-Entität existiert), optional Leistung und Energie eines Leistungsmessers (z. B. Messsteckdose der Pumpe); darunter Controller-Status und Regensensor – jeweils einzeilig mit dem Wert am rechten Rand
 - Eingebettetes Foto (Hunter MP Rotator) als Banner hinter dem Titel oder dezent im Kartenhintergrund – optional eigene Bild-URL
-- Theme-sensitive Darstellung für Light Mode, Dark Mode und eigene Themes (Glas-Look wie die [NAS Card](https://github.com/BeGiBue/nas-card))
+- Theme-sensitive Darstellung für Light Mode, Dark Mode und eigene Themes (Glas-Look wie die [NAS Card](https://github.com/BeGiBue/home-assistant-nas-card))
 - Feste Kartenhöhe: richtet sich immer nach dem Inhalt und ist im Layout-Editor nicht verstellbar; nur die Breite (4 – 12 Spalten) ist frei
 - Optimiert für Hochformat und Touch – iPhone, iPad und Raspberry-Pi-Kiosk: Schrift und Anordnung passen sich automatisch der Kartenbreite an (Zonen und Kacheln ab ausreichender Breite nebeneinander)
 
@@ -47,12 +47,12 @@ Die Card liest diese Zuordnung aus dem Gerät – die Entity-IDs müssen nicht e
 
 ### Automatisch
 
-[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=irrigation-card&category=plugin)
+[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-irrigation-card&category=plugin)
 
 ### Manuell
 
 1. In HACS **Benutzerdefinierte Repositories** öffnen.
-2. `https://github.com/BeGiBue/irrigation-card` hinzufügen.
+2. `https://github.com/BeGiBue/home-assistant-irrigation-card` hinzufügen.
 3. Als Typ **Dashboard** auswählen.
 4. **Irrigation Card** installieren.
 5. Home Assistant bzw. den Browser vollständig neu laden.
