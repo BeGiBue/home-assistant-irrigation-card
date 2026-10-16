@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>Version 1.1.3</strong><br>
+  <strong>Version 1.1.4</strong><br>
   <a href="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
@@ -17,11 +17,11 @@
 
 **Aktive Bewässerung: Rasen – schmal (350 px)**
 
-<img src="screenshots/irrigation-watering-350-light.png" width="350" alt="Rasen wird bewässert, Beete bleiben bereit, 350 px Kartenbreite, helles Theme">
+<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-card/main/screenshots/irrigation-watering-350-light.png" width="350" alt="Rasen wird bewässert, Beete bleiben bereit, 350 px Kartenbreite, helles Theme">
 
 **Aktive Bewässerung: Rasen – breit (800 px)**
 
-<img src="screenshots/irrigation-watering-800-light.png" width="800" alt="Rasen wird bewässert, Beete bleiben bereit, 800 px Kartenbreite, helles Theme">
+<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-card/main/screenshots/irrigation-watering-800-light.png" width="800" alt="Rasen wird bewässert, Beete bleiben bereit, 800 px Kartenbreite, helles Theme">
 
 ## Funktionen
 
