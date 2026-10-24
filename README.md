@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>Version 1.1.4</strong><br>
+  <strong>Version 2.0.0</strong><br>
   <a href="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
@@ -33,15 +33,14 @@
 - Manueller Start mit wählbarer Dauer (Standard 5 / 10 / 15 / 30 min) über `hydrawise.start_watering`
 - Laufende Zone: Restzeit mit Fortschrittsbalken und Stopp-Taste; die Restzeit wird zwischen den Hydrawise-Abfragen minütlich heruntergezählt
 - Nach Start/Stopp fordert die Card sofort ein Update an (Hydrawise fragt sonst nur alle 5 Minuten ab)
-- Aufbau von oben nach unten: Titel, Pumpe, Zonen, Statistiken, Controller
-- Optionale Pumpe (z. B. `switch.gartenpumpe`) als Schalter direkt unter dem Titel – Zustand und Schalter am rechten Rand
-- Statistiken unter den Zonen: heute bewässert, Wasserverbrauch (nur wenn eine Verbrauchs-Entität existiert), optional Leistung und Energie eines Leistungsmessers (z. B. Messsteckdose der Pumpe); darunter Controller-Status und Regensensor – jeweils einzeilig mit dem Wert am rechten Rand
-- Eingebettetes Foto (Hunter MP Rotator) als Banner hinter dem Titel oder dezent im Kartenhintergrund – optional eigene Bild-URL
-- Theme-sensitive Darstellung für Light Mode, Dark Mode und eigene Themes (Glas-Look wie die [NAS Card](https://github.com/BeGiBue/home-assistant-nas-card))
+- Optionale Pumpe (z. B. `switch.gartenpumpe`) direkt schalten
+- Statistiken: heute bewässert, Wasserverbrauch (nur mit passender Entität), optional Leistung und Energie eines Leistungsmessers; dazu Controller-Status und Regensensor
+- Eingebettetes Gerätebild; optional eigenes Bild oder Bildanzeige abschalten
+- Unterstützt helle und dunkle Home-Assistant-Themes
 - Feste Kartenhöhe: richtet sich immer nach dem Inhalt und ist im Layout-Editor nicht verstellbar; nur die Breite (4 – 12 Spalten) ist frei
 - Optimiert für Hochformat und Touch – iPhone, iPad und Raspberry-Pi-Kiosk: Schrift und Anordnung passen sich automatisch der Kartenbreite an (Zonen und Kacheln ab ausreichender Breite nebeneinander)
 
-## Voraussetzung
+## Voraussetzungen
 
 Die Integration [Hunter Hydrawise](https://www.home-assistant.io/integrations/hydrawise/) ist eingerichtet. Sie legt pro Zone ein Gerät mit diesen Entitäten an (Beispiel Zone „Rasen“):
 
@@ -59,17 +58,48 @@ Die Card liest diese Zuordnung aus dem Gerät – die Entity-IDs müssen nicht e
 
 ## Installation über HACS
 
-### Automatisch
+**Katalogstatus (25.10.2026):** Die Aufnahme in den offiziellen HACS-Katalog ist mit
+[hacs/default #12053](https://github.com/hacs/default/pull/12053) beantragt und noch nicht abgeschlossen.
+Solange **Irrigation Card** nicht in der regulären HACS-Suche erscheint, bleibt die Installation
+über ein benutzerdefiniertes Repository der aktuelle Weg.
 
-[![Open your Home Assistant instance and open this repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-irrigation-card&category=plugin)
+### Nach Aufnahme: reguläre HACS-Suche
 
-### Manuell
+Sobald das Projekt im offiziellen HACS-Katalog verfügbar ist, ist dies der Standardweg:
+
+1. HACS öffnen und nach **Irrigation Card** suchen.
+2. Die Karte auswählen und herunterladen.
+3. Browser vollständig neu laden; in der Companion-App gegebenenfalls den Frontend-Cache zurücksetzen.
+
+[![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-irrigation-card&category=plugin)
+
+### Bis zur Aufnahme: benutzerdefiniertes Repository
 
 1. In HACS **Benutzerdefinierte Repositories** öffnen.
 2. `https://github.com/BeGiBue/home-assistant-irrigation-card` hinzufügen.
 3. Als Typ **Dashboard** auswählen.
 4. **Irrigation Card** installieren.
-5. Home Assistant bzw. den Browser vollständig neu laden.
+5. Browser bzw. App vollständig neu laden.
+
+### Bestehende Custom-Repository-Installation migrieren
+
+Diese Schritte erst ausführen, wenn die Karte im offiziellen Katalog verfügbar ist:
+
+1. In der regulären HACS-Suche prüfen, ob **Irrigation Card** verfügbar ist. Falls nicht,
+   HACS aktualisieren und den bisherigen Custom-Repository-Eintrag behalten.
+2. Unter **HACS → ⋮ → Benutzerdefinierte Repositories** nur den Eintrag für
+   `BeGiBue/home-assistant-irrigation-card` entfernen.
+3. **Die bestehende Installation nicht deinstallieren.** Dashboard-Ressource, Karten und
+   YAML-Konfigurationen beibehalten.
+4. HACS neu laden bzw. **Informationen aktualisieren**, anschließend die weiterhin installierte
+   Karte und angebotene Updates prüfen.
+5. Nach einem Update das Frontend vollständig neu laden und vorhandene Dashboard-Karten prüfen.
+
+Für den Katalogwechsel müssen Karten nicht neu angelegt werden. Kartentyp
+`custom:irrigation-card`, vorhandene Entitätszuordnungen und Konfigurationsschlüssel bleiben erhalten.
+Die vorbereitete Major-Version 2.0.0 markiert die Weiterentwicklung und den geplanten
+HACS-Katalogwechsel; sie bedeutet **nicht automatisch Breaking Changes** und ist kein Nachweis
+für eine bereits erfolgte Katalogaufnahme.
 
 ## Card hinzufügen
 
@@ -140,15 +170,45 @@ Im Sections-Dashboard ist die Breite von 4 bis 12 Spalten einstellbar. Die Höhe
 
 | Element | Aktion |
 |---|---|
-| Dauer-Taste (z. B. „10 min“) | `hydrawise.start_watering` mit dieser Dauer |
+| Dauer-Taste (z. B. „10 min“) | `hydrawise.start_watering` mit dieser Dauer; nur bei passendem Hydrawise-Ziel |
+| Start – Controller-Vorgabe | Standardlauf über Hydrawise, manuellen Schalter oder Ventil; keine zugesicherte Minutenzahl durch die Karte |
 | Stopp | schaltet `switch.<zone>_manuelle_bewasserung` aus |
 | Automatik | schaltet `switch.<zone>_automatische_bewasserung` (aus = Hydrawise pausiert die Zone für 365 Tage) |
 | Pumpe | schaltet die Pumpen-Entität um |
 | Kacheln, Zeilen, Status-Pill | öffnen den Mehr-Info-Dialog |
 
+### Wirkung der Bedienung
+
+Start, Stopp, Automatik und Pumpenschalter lösen Home-Assistant-Dienste aus und können reale
+Ventile, Bewässerungszonen und Pumpen bedienen. Die Karte verwendet die angemeldete HA-Sitzung;
+Berechtigungen werden serverseitig von Home Assistant und der Geräteintegration geprüft.
+Den Zugriff auf ein bedienbares Dashboard entsprechend vergeben und Entitätszuordnungen vor
+realer Bedienung prüfen.
+
+## Grenzen und Datenaktualität
+
+- Benötigt Home Assistant mit Custom-Card-Unterstützung und einen aktuellen Browser. Es wird keine Hydrawise-Integration mitgeliefert.
+- Hydrawise-Zustände können zeitverzögert eintreffen. Die minütliche Restzeit ist zwischen den Controller-Abfragen eine Schätzung; nach einer Aktion fordert die Karte eine Aktualisierung an.
+- Ohne Durchflusssensor bzw. Verbrauchsentität steht keine Verbrauchsanzeige zur Verfügung. Statistiken und Animationen ersetzen keine unabhängige Überwachung des Wasserflusses.
+- Minutentasten werden nur angeboten, wenn die Zone über `hydrawise.start_watering` mit einer Dauer gestartet werden kann. Fehlt das passende Ziel oder sind keine gültigen Dauern konfiguriert, heißt der Start ausdrücklich **Controller-Vorgabe**. Dabei gelten die Laufzeit-/Abschaltregeln des Controllers; die Karte implementiert keinen eigenen Abschalttimer.
+- Während einer ausstehenden Startbestätigung bleibt **Stopp** verfügbar, sofern ein bedienbares Stopp-Ziel existiert. Ein Stoppauftrag wartet auf den bereits gesendeten Startauftrag und wird danach abgesetzt. Ein unbeantworteter Auftrag gibt auch nach Ablauf der Wartezeit keinen weiteren Start frei. Die Anzeige allein bestätigt keinen geschlossenen Wasserfluss; bei Cloud-Ausfall den Controller bzw. die Anlage direkt prüfen.
+- Das Abschalten der Automatik kann die Zone laut Hydrawise-Integration für 365 Tage pausieren. Den Controller-Zustand nach Änderungen prüfen.
+- Eine separat konfigurierte Pumpe ist unabhängig von den Zonen bedienbar. Die Karte bildet keine eigene Pumpen-/Ventilverriegelung oder Trockenlaufsicherung ab.
+- Eigene Bild-URLs werden vom Browser geladen. Externe Bildanbieter können dessen IP-Adresse und übliche Verbindungsmetadaten erhalten; lokale Bilder unter `/local/…` vermeiden diesen externen Abruf. Keine Zugangsdaten in Bild-URLs eintragen.
+
 ## Bild
 
 Das Standardbild (`images/MP-Rotator-Flyer.webp`, zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
+
+## Release-Vorbereitung
+
+[CHANGELOG.md](CHANGELOG.md) und [RELEASE_NOTES_2.0.0.md](RELEASE_NOTES_2.0.0.md) dokumentieren
+die vorbereitete Version. Ergebnisse und Restrisiken des Reviews stehen in
+[SECURITY_REVIEW.md](SECURITY_REVIEW.md). Die Katalogaufnahme bleibt bis zum Merge des
+HACS-Aufnahme-PRs ausstehend; die Migration darf nicht vor der tatsächlichen Verfügbarkeit erfolgen.
+
+Version 2.0.0 wird zunächst per Pull Request vorbereitet. Review, erfolgreiche CI und die
+Veröffentlichungsfreigabe bleiben erforderlich; diese Vorbereitung veröffentlicht kein Release.
 
 ## Hinweise zu Marken
 
@@ -157,3 +217,18 @@ Dieses Projekt ist ein unabhängiges Community-Projekt und steht in keiner Verbi
 ## Lizenz
 
 GNU Affero General Public License v3.0 only (**AGPL-3.0-only**). Details stehen in [`LICENSE`](LICENSE).
+
+## Entwicklung und Tests
+
+Die Karte ist eine einzelne JavaScript-Datei ohne npm-Laufzeitabhängigkeiten und ohne Build-Schritt.
+
+```bash
+node --check irrigation-card.js
+node --test --test-isolation=none tests/security.test.mjs
+python -m pip install -r requirements-dev.txt
+python -m playwright install chromium
+python tests/browser_security.py
+```
+
+Die Browserprüfung verwendet HA-Attrappen und gemockte Dienste, prüft 350/800 px Breite und legt Vorschauen
+unter `tests/out/` ab. Es werden keine realen Ventile oder Pumpen geschaltet.
