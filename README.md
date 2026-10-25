@@ -1,27 +1,27 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-card/main/images/irrigation-card-logo-160.png" alt="Irrigation Card" width="160">
+  <img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-control-card/main/images/irrigation-card-logo-160.png" alt="Irrigation Control Card" width="160">
 </p>
 
-<h1 align="center">Irrigation Card</h1>
+<h1 align="center">Irrigation Control Card</h1>
 
 <p align="center">
   Custom-Card zur Bewässerungssteuerung mit <strong>Hunter Hydrawise</strong> in Home Assistant.
 </p>
 
 <p align="center">
-  <strong>Version 2.0.0</strong><br>
-  <a href="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
+  <strong>Version 3.0.0</strong><br>
+  <a href="https://github.com/BeGiBue/home-assistant-irrigation-control-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-control-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
 ## Vorschau
 
 **Aktive Bewässerung: Rasen – schmal (350 px)**
 
-<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-card/main/screenshots/irrigation-watering-350-light.png" width="350" alt="Rasen wird bewässert, Beete bleiben bereit, 350 px Kartenbreite, helles Theme">
+<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-control-card/main/screenshots/irrigation-watering-350-light.png" width="350" alt="Rasen wird bewässert, Beete bleiben bereit, 350 px Kartenbreite, helles Theme">
 
 **Aktive Bewässerung: Rasen – breit (800 px)**
 
-<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-card/main/screenshots/irrigation-watering-800-light.png" width="800" alt="Rasen wird bewässert, Beete bleiben bereit, 800 px Kartenbreite, helles Theme">
+<img src="https://raw.githubusercontent.com/BeGiBue/home-assistant-irrigation-control-card/main/screenshots/irrigation-watering-800-light.png" width="800" alt="Rasen wird bewässert, Beete bleiben bereit, 800 px Kartenbreite, helles Theme">
 
 ## Funktionen
 
@@ -60,59 +60,102 @@ Die Card liest diese Zuordnung aus dem Gerät – die Entity-IDs müssen nicht e
 
 **Katalogstatus (25.10.2026):** Die Aufnahme in den offiziellen HACS-Katalog ist mit
 [hacs/default #12053](https://github.com/hacs/default/pull/12053) beantragt und noch nicht abgeschlossen.
-Solange **Irrigation Card** nicht in der regulären HACS-Suche erscheint, bleibt die Installation
+Solange **Irrigation Control Card** nicht in der regulären HACS-Suche erscheint, bleibt die Installation
 über ein benutzerdefiniertes Repository der aktuelle Weg.
 
 ### Nach Aufnahme: reguläre HACS-Suche
 
 Sobald das Projekt im offiziellen HACS-Katalog verfügbar ist, ist dies der Standardweg:
 
-1. HACS öffnen und nach **Irrigation Card** suchen.
+1. HACS öffnen und nach **Irrigation Control Card** suchen.
 2. Die Karte auswählen und herunterladen.
 3. Browser vollständig neu laden; in der Companion-App gegebenenfalls den Frontend-Cache zurücksetzen.
 
-[![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-irrigation-card&category=plugin)
+[![In HACS öffnen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=BeGiBue&repository=home-assistant-irrigation-control-card&category=plugin)
 
 ### Bis zur Aufnahme: benutzerdefiniertes Repository
 
 1. In HACS **Benutzerdefinierte Repositories** öffnen.
-2. `https://github.com/BeGiBue/home-assistant-irrigation-card` hinzufügen.
+2. `https://github.com/BeGiBue/home-assistant-irrigation-control-card` hinzufügen.
 3. Als Typ **Dashboard** auswählen.
-4. **Irrigation Card** installieren.
+4. **Irrigation Control Card** installieren.
 5. Browser bzw. App vollständig neu laden.
 
 ### Bestehende Custom-Repository-Installation migrieren
 
 Diese Schritte erst ausführen, wenn die Karte im offiziellen Katalog verfügbar ist:
 
-1. In der regulären HACS-Suche prüfen, ob **Irrigation Card** verfügbar ist. Falls nicht,
+1. In der regulären HACS-Suche prüfen, ob **Irrigation Control Card** verfügbar ist. Falls nicht,
    HACS aktualisieren und den bisherigen Custom-Repository-Eintrag behalten.
 2. Unter **HACS → ⋮ → Benutzerdefinierte Repositories** nur den Eintrag für
-   `BeGiBue/home-assistant-irrigation-card` entfernen.
+   `BeGiBue/home-assistant-irrigation-control-card` entfernen.
 3. **Die bestehende Installation nicht deinstallieren.** Dashboard-Ressource, Karten und
    YAML-Konfigurationen beibehalten.
 4. HACS neu laden bzw. **Informationen aktualisieren**, anschließend die weiterhin installierte
    Karte und angebotene Updates prüfen.
 5. Nach einem Update das Frontend vollständig neu laden und vorhandene Dashboard-Karten prüfen.
 
-Für den Katalogwechsel müssen Karten nicht neu angelegt werden. Kartentyp
-`custom:irrigation-card`, vorhandene Entitätszuordnungen und Konfigurationsschlüssel bleiben erhalten.
-Die vorbereitete Major-Version 2.0.0 markiert die Weiterentwicklung und den geplanten
-HACS-Katalogwechsel; sie bedeutet **nicht automatisch Breaking Changes** und ist kein Nachweis
-für eine bereits erfolgte Katalogaufnahme.
+Für den Katalogwechsel müssen Karten nicht neu angelegt werden. Vorhandene
+Entitätszuordnungen und Konfigurationsschlüssel bleiben erhalten. Die unten beschriebene
+Umbenennung von Kartentyp und Ressource ist ein eigener Migrationsschritt.
+Eine Major-Version bedeutet **nicht automatisch Breaking Changes**; Version 3.0.0 enthält
+jedoch bewusst die folgende notwendige Umstellung. Die Versionsnummer bestätigt keine
+bereits erfolgte Katalogaufnahme.
+
+## Bestehende Karten auf den neuen Namen umstellen
+
+Ab Version 3.0.0 heißt das Projekt **Irrigation Control Card**. Der bisherige Kartentyp
+`custom:irrigation-card` kollidiert mit der Karte von `kratochj/hassio-irrigation-card`.
+Deshalb registriert dieses Projekt ausschließlich `irrigation-control-card`; ein Alias für
+den alten Namen würde die Kollision beibehalten.
+
+Diese Schritte nach Installation der neuen Version ausführen:
+
+1. Dashboard-Konfiguration sichern. Die vorhandene HACS-Installation, Karten und
+   Entitätszuordnungen **nicht deinstallieren oder neu anlegen**.
+2. Den bestehenden HACS-Eintrag prüfen: Das Repository heißt jetzt
+   `https://github.com/BeGiBue/home-assistant-irrigation-control-card`.
+   Falls HACS noch den bisherigen Repository-Namen führt, die Informationen aktualisieren.
+   Falls die Custom-Repository-Liste korrigiert werden muss, nur deren alten Eintrag entfernen
+   und die neue URL als **Dashboard** hinzufügen; die installierte Karte dabei behalten.
+3. Unter **Einstellungen → Dashboards → Ressourcen** prüfen, dass die zu **diesem Projekt**
+   gehörende Ressource auf `irrigation-control-card.js` zeigt und als JavaScript-Modul geladen
+   wird. Die von HACS bereitgestellte URL verwenden. Bleibt das Installationsverzeichnis gleich,
+   nur den Dateinamen `irrigation-card.js` ersetzen und Verzeichnis sowie vorhandene
+   Cache-Parameter beibehalten. Das Verzeichnis nicht allein wegen der Repository-Umbenennung
+   auf einen vermuteten Namen ändern. Bei manueller Installation die neue Datei in das
+   bisherige Verzeichnis kopieren und die entsprechende Ressourcen-URL aktualisieren.
+4. In allen **Karten dieses Projekts** ausschließlich den Typ ändern:
+
+   ```yaml
+   type: custom:irrigation-control-card
+   ```
+
+   Bisher stand dort `type: custom:irrigation-card`. Alle anderen Optionen, Geräte-IDs,
+   Entitäten und die Position der Karte im Dashboard bleiben erhalten.
+5. Alte Ressourcen dieses Projekts nicht zusätzlich laden. Ressourcen und Konfigurationen
+   der anderen Irrigation Card von `kratochj` unverändert lassen; deren gleichnamige
+   JavaScript-Datei nicht versehentlich entfernen oder ersetzen.
+6. Browser vollständig neu laden, gegebenenfalls Frontend-Cache der Companion-App leeren.
+   Anschließend Darstellung, Editor und Entitätszuordnungen prüfen.
+
+Die Umbenennung kann nach Veröffentlichung unabhängig von der noch ausstehenden
+HACS-Katalogaufnahme durchgeführt werden. Das Entfernen des Custom-Repository-Eintrags
+wegen einer **Katalogaufnahme** erfolgt dagegen erst, wenn die Karte tatsächlich in der
+regulären HACS-Suche verfügbar ist.
 
 ## Card hinzufügen
 
 Minimal – alle Hydrawise-Zonen automatisch:
 
 ```yaml
-type: custom:irrigation-card
+type: custom:irrigation-control-card
 ```
 
 Mit ausgewählten Zonen (Geräte-IDs, am einfachsten im grafischen Editor wählen):
 
 ```yaml
-type: custom:irrigation-card
+type: custom:irrigation-control-card
 title: Bewässerung
 subtitle: Hunter Hydrawise
 zones:
@@ -198,17 +241,17 @@ realer Bedienung prüfen.
 
 ## Bild
 
-Das Standardbild (`images/MP-Rotator-Flyer.webp`, zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
+Das Standardbild (`images/MP-Rotator-Flyer.webp`, zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-control-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
 
-## Release-Vorbereitung
+## Version und Security-Review
 
-[CHANGELOG.md](CHANGELOG.md) und [RELEASE_NOTES_2.0.0.md](RELEASE_NOTES_2.0.0.md) dokumentieren
-die vorbereitete Version. Ergebnisse und Restrisiken des Reviews stehen in
+[CHANGELOG.md](CHANGELOG.md) und [RELEASE_NOTES_3.0.0.md](RELEASE_NOTES_3.0.0.md) dokumentieren
+Version 3.0.0. Ergebnisse und Restrisiken des Reviews stehen in
 [SECURITY_REVIEW.md](SECURITY_REVIEW.md). Die Katalogaufnahme bleibt bis zum Merge des
 HACS-Aufnahme-PRs ausstehend; die Migration darf nicht vor der tatsächlichen Verfügbarkeit erfolgen.
 
-Version 2.0.0 wird zunächst per Pull Request vorbereitet. Review, erfolgreiche CI und die
-Veröffentlichungsfreigabe bleiben erforderlich; diese Vorbereitung veröffentlicht kein Release.
+Version 3.0.0 verwendet den neuen Kartentyp und Dateinamen. Bestehende Installationen
+benötigen die oben beschriebene Migration; die Umbenennung ersetzt keine HACS-Katalogaufnahme.
 
 ## Hinweise zu Marken
 
@@ -223,7 +266,7 @@ GNU Affero General Public License v3.0 only (**AGPL-3.0-only**). Details stehen 
 Die Karte ist eine einzelne JavaScript-Datei ohne npm-Laufzeitabhängigkeiten und ohne Build-Schritt.
 
 ```bash
-node --check irrigation-card.js
+node --check irrigation-control-card.js
 node --test --test-isolation=none tests/security.test.mjs
 python -m pip install -r requirements-dev.txt
 python -m playwright install chromium

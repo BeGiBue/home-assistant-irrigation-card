@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 
-const source = readFileSync(process.env.IRRIGATION_TEST_CARD || new URL('../irrigation-card.js', import.meta.url), 'utf8');
+const source = readFileSync(process.env.IRRIGATION_TEST_CARD || new URL('../irrigation-control-card.js', import.meta.url), 'utf8');
 const attack = '<img src=x onerror="window.__injected=1">';
 function fixture({ running = true, manual = true, valve = true, config = {}, call } = {}) {
   const classes = new Map(), calls = [];
@@ -17,7 +17,7 @@ function fixture({ running = true, manual = true, valve = true, config = {}, cal
     CustomEvent: class {}, setTimeout: () => 1, clearTimeout() {}, setInterval: () => 1, clearInterval() {},
   });
   vm.runInContext(source, ctx);
-  const Card = classes.get('irrigation-card'), card = new Card();
+  const Card = classes.get('irrigation-control-card'), card = new Card();
   const entities = {}, states = {};
   const add = (id, key, value, attributes = {}, device = 'zone1') => {
     entities[id] = { entity_id: id, device_id: device, platform: 'hydrawise', translation_key: key };
@@ -163,4 +163,67 @@ test('Pumpenschalter verwendet HA-Sitzung und eindeutiges Ziel', () => {
   assert.equal(calls[0].domain, 'homeassistant');
   assert.equal(calls[0].service, 'turn_on');
   assert.equal(calls[0].data.entity_id, 'switch.gartenpumpe');
+});
+
+
+// Load the actual script unchanged to check its own scope isolation on reload.
+// The registry rejects duplicate tags/constructors just like the browser.
+function registrationContext() {
+  const classes = new Map();
+  const ctx = vm.createContext({
+    HTMLElement: class {}, window: {}, console: { info() {} },
+    customElements: {
+      get: name => classes.get(name),
+      define: (name, cls) => {
+        assert.ok(!classes.has(name), `Tag already registered: ${name}`);
+        assert.ok(![...classes.values()].includes(cls), 'Constructor already registered');
+        classes.set(name, cls);
+      },
+    },
+  });
+  const loadOwn = () => vm.runInContext(source, ctx);
+  const loadOther = () => vm.runInContext(`
+    window.OtherIrrigationCard = class extends HTMLElement {};
+    customElements.define('irrigation-card', window.OtherIrrigationCard);
+    window.customCards = window.customCards || [];
+    window.customCards.push({type:'irrigation-card',name:'Irrigation Card'});
+  `, ctx);
+  return { classes, ctx, loadOwn, loadOther };
+}
+function assertMetadata(ctx) {
+  const entries = ctx.window.customCards.filter(c => c.type === 'irrigation-control-card');
+  assert.equal(entries.length, 1);
+  assert.equal(entries[0].name, 'Irrigation Control Card');
+  assert.equal(entries[0].documentationURL, 'https://github.com/BeGiBue/home-assistant-irrigation-control-card');
+}
+test('Eigenständige Karte registriert ausschließlich den neuen eindeutigen Tag', () => {
+  const { classes, ctx, loadOwn } = registrationContext();
+  loadOwn();
+  assert.equal(classes.has('irrigation-control-card'), true);
+  assert.equal(classes.has('irrigation-card'), false);
+  assert.equal(ctx.window.customCards.some(c => c.type === 'irrigation-card'), false);
+  assertMetadata(ctx);
+});
+for (const otherFirst of [true, false]) {
+  test(`Andere Irrigation Card ${otherFirst ? 'zuerst' : 'danach'}: beide Registrierungen bleiben unabhängig`, () => {
+    const { classes, ctx, loadOwn, loadOther } = registrationContext();
+    if (otherFirst) { loadOther(); loadOwn(); }
+    else { loadOwn(); loadOther(); }
+    assert.equal(classes.size, 2);
+    assert.equal(classes.get('irrigation-card'), ctx.window.OtherIrrigationCard);
+    assert.notEqual(classes.get('irrigation-control-card'), classes.get('irrigation-card'));
+    assert.equal(ctx.window.customCards.filter(c => c.type === 'irrigation-card').length, 1);
+    assertMetadata(ctx);
+  });
+}
+test('Erneutes Laden erzeugt weder doppelte Registrierungen noch Kartenmetadaten', () => {
+  const { classes, ctx, loadOwn, loadOther } = registrationContext();
+  loadOther(); loadOwn();
+  const registered = classes.get('irrigation-control-card');
+  loadOwn();
+  assert.equal(classes.size, 2);
+  assert.equal(classes.get('irrigation-control-card'), registered);
+  assert.equal(classes.get('irrigation-card'), ctx.window.OtherIrrigationCard);
+  assert.equal(ctx.window.customCards.length, 2);
+  assertMetadata(ctx);
 });

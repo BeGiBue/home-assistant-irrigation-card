@@ -1,5 +1,14 @@
 # Changelog
 
+## 3.0.0
+
+- Umbenennung in **Irrigation Control Card**, damit HACS und der Karteneditor das Projekt von der bereits vorhandenen Irrigation Card von `kratochj` unterscheiden.
+- **Breaking Change:** Custom-Element und YAML-Typ heißen jetzt `irrigation-control-card` bzw. `custom:irrigation-control-card`; die JavaScript-Datei heißt `irrigation-control-card.js`. Der alte Tag wird wegen der Namenskollision nicht als Alias registriert.
+- Repository, Dokumentationslink, HACS-Verknüpfung, Badges und Bild-URLs auf `https://github.com/BeGiBue/home-assistant-irrigation-control-card` umgestellt.
+- Migration dokumentiert: vorhandene Installation und Karten behalten, die Ressource dieses Projekts aktualisieren und nur deren YAML-Typ ändern. Entitätszuordnungen und sonstige Konfigurationsschlüssel bleiben erhalten. Ressourcen der anderen Irrigation Card dürfen dabei nicht entfernt werden.
+- Die Aufnahme in den offiziellen HACS-Katalog ist weiterhin ausstehend ([hacs/default #12053](https://github.com/hacs/default/pull/12053)). Der Wechsel von Custom Repositories zur regulären HACS-Suche erfolgt erst nach bestätigter Katalogverfügbarkeit und ohne Deinstallation.
+- Eine Major-Version bedeutet nicht automatisch Breaking Changes; diese Version enthält jedoch ausdrücklich die erforderliche Umbenennung von Kartentyp und Ressource. Die bisherigen Sicherheitskorrekturen bleiben erhalten.
+
 ## 2.0.0
 
 - Version 2.0.0 zur Weiterentwicklung und Vorbereitung des Wechsels in den offiziellen HACS-Katalog; die Aufnahme ist noch ausstehend ([hacs/default #12053](https://github.com/hacs/default/pull/12053)).

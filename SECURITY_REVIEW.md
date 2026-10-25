@@ -1,8 +1,14 @@
-# Security-Review und HACS-Major-Vorbereitung: Irrigation Card
+# Security-Review: Irrigation Control Card
 
-Stand: 25.10.2026. Repository: `BeGiBue/home-assistant-irrigation-card`.
+Stand: 25.10.2026. Repository: `BeGiBue/home-assistant-irrigation-control-card`.
 Ausgangsbasis: `f6c3e8c3e44f81ba765af23ba662898fcbd7cb6d` (**1.1.4**).
 Zielversion: **2.0.0**. Befundzeilen beziehen sich auf diese Ausgangsbasis.
+
+## Historischer Review zu 2.0.0
+
+Die folgenden Befunde und Zeilenangaben dokumentieren den Review der damaligen
+`irrigation-card.js` vor der Umbenennung. Aktuelle Identität und Prüfung: siehe
+Nachtrag zu 3.0.0 am Ende dieses Berichts.
 
 ## Ergebnis und wichtiger HACS-Status
 
@@ -116,3 +122,50 @@ eindeutige Beschriftung und verspricht keine ungeprüfte Dauer.
 Dieser Folgeauftrag hebt den ursprünglichen Ausschluss der Irrigation Card ausdrücklich
 auf. Die zehn zuvor geprüften Repositories werden für diesen Auftrag nicht verändert.
 
+
+## Nachtrag: Umbenennung zu 3.0.0 (25.10.2026)
+
+Ausgangsbasis: `432fd4265312595c31c937fe7bc4601cc3d5df84` (veröffentlichtes 2.0.0).
+Repository: https://github.com/BeGiBue/home-assistant-irrigation-control-card.
+
+Der HACS-Review hat eine Namenskollision mit `kratochj/hassio-irrigation-card`
+bestätigt. Beide Karten registrierten `irrigation-card` und wurden als
+„Irrigation Card“ angeboten; Lade-Reihenfolge konnte die falsche Karte anzeigen
+oder die Registrierung der anderen Karte abbrechen. Die Umbenennung betrifft
+Datei, Custom-Element, Picker-Metadaten, Klasse und Versionskonstante:
+
+- Name: **Irrigation Control Card**.
+- Datei: `irrigation-control-card.js`.
+- Custom-Element / YAML: `irrigation-control-card` / `custom:irrigation-control-card`.
+- Dokumentations-URL: das oben genannte umbenannte Repository.
+- Kein Alias für `irrigation-card`, da dieser die Kollision erhalten würde.
+- Eine abgeschlossene Funktionsumgebung kapselt die internen Konstanten und Klasse,
+  damit fremde Karten und erneutes Laden keine globalen Deklarationen kollidieren lassen.
+
+**3.0.0 wird vorbereitet, nicht veröffentlicht.** Dieser Wechsel enthält einen
+konkreten Breaking Change: bestehende Karten benötigen den neuen YAML-Typ und
+die Dashboard-Ressource die neue Datei. Alle übrigen Optionen, Entity-Zuordnungen,
+Steuerungsabläufe und das eingebettete Bild bleiben erhalten. Die README erklärt
+die Migration ohne Deinstallation und ohne Entfernen einer fremden Ressource.
+Die Aussage „Major bedeutet nicht automatisch Breaking Changes“ im historischen
+2.0.0-Abschnitt bleibt historisch richtig; hier ist der Breaking Change ausdrücklich genannt.
+
+Der nach dem ursprünglichen Review hinzugefügte Einmal-Publisher für das inzwischen
+veröffentlichte 2.0.0 wird entfernt. Es wird kein automatischer Publisher für 3.0.0
+eingerichtet; es erfolgen kein Merge, Tag, Release oder Review-Aufruf an Frenck.
+Die HACS-Katalogaufnahme bleibt bis zum Merge von hacs/default #12053 ausstehend.
+
+Zusätzliche Regressionen prüfen beide Lade-Reihenfolgen mit einer fremden
+`irrigation-card`, unveränderte Fremdregistrierung, eindeutige Picker-Metadaten,
+korrekte Dokumentations-URL und mehrfaches Laden der eigenen Datei. Die bestehenden
+Security- und gemockten Steuerungstests prüfen die bisherigen Korrekturen erneut.
+Testergebnisse und PR-Link werden im Folgebericht zur Umbenennung festgehalten.
+
+Prüfung der Umbenennung: `node --check irrigation-control-card.js` bestanden;
+**21 Node-Tests** und **46 Chromium-Prüfungen** bestanden, einschließlich beider
+Lade-Reihenfolgen und erneutem Laden. Python-Compile und `git diff --check` bestanden.
+Die Vorschauen bei 350 und 800 px wurden erzeugt und visuell geprüft.
+Ein normalisierter Vollvergleich des Laufzeitcodes gegen 2.0.0 bestätigt ausschließlich
+Identitäts-/Versionsänderungen und die zusätzliche Funktionskapselung; `DEF` und
+das eingebettete Bild sind unverändert. Keine veralteten Repository-URLs in den
+aktuellen Quellen, Dokumenten, Tests und Workflows.
