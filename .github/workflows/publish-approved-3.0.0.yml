@@ -1,0 +1,39 @@
+name: Publish approved Irrigation Control Card 3.0.0
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ab0c6579575c9ac9172db0de78691e48c3774206
+      - name: Verify approved source and publish release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SOURCE_SHA: ab0c6579575c9ac9172db0de78691e48c3774206
+          EXPECTED_ASSET_SHA256: b1145a5098c26433cec410ee8450c60cd471b6db56c466e575eaa7ff7ccd2674
+        run: |
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$SOURCE_SHA"
+          test "$(tr -d '[:space:]' < VERSION)" = "3.0.0"
+          node --check irrigation-control-card.js
+          printf '%s  %s\n' "$EXPECTED_ASSET_SHA256" irrigation-control-card.js | sha256sum --check --status
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/40197627598" > /tmp/approved-validation.json
+          jq -e --arg source "$SOURCE_SHA" '.head_sha == $source and .conclusion == "success" and .event == "push"' /tmp/approved-validation.json
+          gh api "repos/$GITHUB_REPOSITORY/releases/423420641" > /tmp/approved-release.json
+          jq -e --arg source "$SOURCE_SHA" '.tag_name == "v3.0.0" and .target_commitish == $source and .draft == true and .prerelease == false' /tmp/approved-release.json
+          if ! jq -e 'any(.assets[]; .name == "irrigation-control-card.js")' /tmp/approved-release.json >/dev/null; then
+            gh release upload v3.0.0 irrigation-control-card.js --repo "$GITHUB_REPOSITORY"
+          fi
+          mkdir -p /tmp/verified-release
+          gh release download v3.0.0 --pattern irrigation-control-card.js --dir /tmp/verified-release --repo "$GITHUB_REPOSITORY"
+          printf '%s  %s\n' "$EXPECTED_ASSET_SHA256" /tmp/verified-release/irrigation-control-card.js | sha256sum --check --status
+          gh release edit v3.0.0 --draft=false --latest --repo "$GITHUB_REPOSITORY"
+          gh api "repos/$GITHUB_REPOSITORY/releases/423420641" --jq '{tag_name, html_url, draft, published_at, assets: [.assets[] | {name, size, digest}]}'
