@@ -6,13 +6,19 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
+OTHER_CARD = """
+  window.OtherIrrigationCard = class extends HTMLElement {};
+  customElements.define('irrigation-card', window.OtherIrrigationCard);
+  window.customCards = window.customCards || [];
+  window.customCards.push({type:'irrigation-card',name:'Irrigation Card'});
+"""
 TEST_JS = r"""
 async () => {
   const results = [], check = (name, pass) => results.push({name, pass:!!pass});
   const attack = '<img src=x onerror="window.__injected=1">';
   const fixture = ({width=350,running=true,manual=true,valve=true,config={}}={}) => {
     document.body.style.width = width+'px';
-    const card = document.createElement('irrigation-card'), calls=[], states={}, entities={};
+    const card = document.createElement('irrigation-control-card'), calls=[], states={}, entities={};
     const add=(id,key,state,attributes={},device='zone1')=>{
       entities[id]={entity_id:id,translation_key:key,device_id:device,platform:'hydrawise'};
       states[id]={state,attributes,last_changed:new Date().toISOString()};
@@ -90,16 +96,61 @@ def main():
         # Externe Bilder werden für diese Tests nicht abgerufen.
         page.route("**/*", lambda route: route.abort())
         page.set_content("<html><body></body></html>")
-        page.add_script_tag(content=(ROOT / "irrigation-card.js").read_text())
+        source = (ROOT / "irrigation-control-card.js").read_text()
+        page.add_script_tag(content=source, type="module")
         results = page.evaluate(TEST_JS)
         results.append({"name": "Keine JavaScript-Fehler", "pass": not errors})
+        results.append({
+            "name": "Eigenständige Karte lässt alten Tag und alte Metadaten frei",
+            "pass": page.evaluate("""() => !customElements.get('irrigation-card') &&
+              !window.customCards.some(c=>c.type==='irrigation-card')"""),
+        })
+        for other_first in (True, False):
+            coexist = browser.new_page()
+            coexist_errors = []
+            coexist.on("pageerror", lambda error: coexist_errors.append(str(error)))
+            coexist.route("**/*", lambda route: route.abort())
+            coexist.set_content("<html><body></body></html>")
+            if other_first:
+                coexist.add_script_tag(content=OTHER_CARD, type="module")
+                coexist.add_script_tag(content=source, type="module")
+            else:
+                coexist.add_script_tag(content=source, type="module")
+                coexist.add_script_tag(content=OTHER_CARD, type="module")
+            prefix = "Andere Karte zuerst" if other_first else "Eigene Karte zuerst"
+            coexist_checks = coexist.evaluate("""() => {
+              const own = customElements.get('irrigation-control-card');
+              const other = customElements.get('irrigation-card');
+              const entries = window.customCards.filter(c=>c.type==='irrigation-control-card');
+              const a=document.createElement('irrigation-control-card');
+              const b=document.createElement('irrigation-card');
+              window.__ownClass=own;
+              return [
+                {name:'getrennte Konstruktoren',pass:!!own&&!!other&&own!==other},
+                {name:'anderer Tag bleibt Eigentum der anderen Karte',pass:other===window.OtherIrrigationCard&&b.constructor===other},
+                {name:'neuer Tag erzeugt bedienbare eigene Karte',pass:a.constructor===own&&!!a.shadowRoot&&typeof a.setConfig==='function'},
+                {name:'beide Picker-Einträge und korrekter Repository-Link',pass:entries.length===1&&entries[0].name==='Irrigation Control Card'&&entries[0].documentationURL==='https://github.com/BeGiBue/home-assistant-irrigation-control-card'&&window.customCards.filter(c=>c.type==='irrigation-card').length===1},
+              ];
+            }""")
+            for check in coexist_checks:
+                results.append({"name": prefix + ": " + check["name"], "pass": check["pass"]})
+            coexist.add_script_tag(content=source, type="module")
+            results.append({
+                "name": prefix + ": erneutes Laden bleibt ohne doppelte Registrierung",
+                "pass": coexist.evaluate("""() => customElements.get('irrigation-control-card')===window.__ownClass&&
+                  customElements.get('irrigation-card')===window.OtherIrrigationCard&&
+                  window.customCards.length===2"""),
+            })
+            results.append({"name": prefix + ": keine JavaScript-Fehler", "pass": not coexist_errors})
+            errors.extend(coexist_errors)
+            coexist.close()
         out = ROOT / "tests" / "out"
         out.mkdir(exist_ok=True)
         for width in (350, 800):
             page.set_viewport_size({"width": width, "height": 1000})
             page.evaluate("""width => {
               document.body.style.cssText='margin:0;width:'+width+'px;--primary-text-color:#212121;--secondary-text-color:#727272;--card-background-color:#fff;';
-              const c=document.createElement('irrigation-card');
+              const c=document.createElement('irrigation-control-card');
               c.setConfig({title:'Bewässerung',zones:['zone1'],show_image:true});document.body.appendChild(c);
               c.hass={language:'de',states:{'binary_sensor.zone':{state:'on'},'switch.manual':{state:'on'},'sensor.remaining':{state:'12',attributes:{unit_of_measurement:'min'},last_changed:new Date().toISOString()},'switch.auto':{state:'on'}},
                 devices:{zone1:{name:'Rasen',model:'Zone'}},entities:{a:{entity_id:'binary_sensor.zone',device_id:'zone1',platform:'hydrawise',translation_key:'watering'},b:{entity_id:'switch.manual',device_id:'zone1',platform:'hydrawise',translation_key:'manual_watering'},c:{entity_id:'sensor.remaining',device_id:'zone1',platform:'hydrawise',translation_key:'watering_time'},d:{entity_id:'switch.auto',device_id:'zone1',platform:'hydrawise',translation_key:'auto_watering'}},callService:async()=>{}};
