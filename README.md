@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>Version 3.0.0 (vorbereitet)</strong><br>
+  <strong>Version 3.0.0</strong><br>
   <a href="https://github.com/BeGiBue/home-assistant-irrigation-control-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-control-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
@@ -243,15 +243,15 @@ realer Bedienung prüfen.
 
 Das Standardbild (`images/MP-Rotator-Flyer.webp`, zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-control-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
 
-## Release-Vorbereitung
+## Version und Security-Review
 
 [CHANGELOG.md](CHANGELOG.md) und [RELEASE_NOTES_3.0.0.md](RELEASE_NOTES_3.0.0.md) dokumentieren
-die vorbereitete Version. Ergebnisse und Restrisiken des Reviews stehen in
+Version 3.0.0. Ergebnisse und Restrisiken des Reviews stehen in
 [SECURITY_REVIEW.md](SECURITY_REVIEW.md). Die Katalogaufnahme bleibt bis zum Merge des
 HACS-Aufnahme-PRs ausstehend; die Migration darf nicht vor der tatsächlichen Verfügbarkeit erfolgen.
 
-Version 3.0.0 wird zunächst per Pull Request vorbereitet. Review, erfolgreiche CI und die
-Veröffentlichungsfreigabe bleiben erforderlich; diese Vorbereitung veröffentlicht kein Release.
+Version 3.0.0 verwendet den neuen Kartentyp und Dateinamen. Bestehende Installationen
+benötigen die oben beschriebene Migration; die Umbenennung ersetzt keine HACS-Katalogaufnahme.
 
 ## Hinweise zu Marken
 

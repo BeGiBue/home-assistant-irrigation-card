@@ -1,7 +1,7 @@
 # Irrigation Control Card v3.0.0
 
-Diese Version bereitet die Umbenennung des Projekts vor. Sie wird per Pull Request geprüft;
-Review, erfolgreiche CI und eine gesonderte Veröffentlichungsfreigabe bleiben erforderlich.
+Mit Version 3.0.0 heißt das Projekt **Irrigation Control Card** und verwendet einen
+eindeutigen Kartentyp, damit beide Irrigation-Karten gemeinsam installiert werden können.
 
 - Name in HACS und im Karteneditor: **Irrigation Control Card**.
 - Neuer YAML-Typ: `custom:irrigation-control-card`.
@@ -28,7 +28,7 @@ behalten; keine Entitäten neu anlegen:
 5. Browser bzw. Companion-App vollständig neu laden und die Karten prüfen.
 
 Die vollständige Anleitung einschließlich Repository-Umbenennung und manueller Installation
-steht in der [README](README.md#bestehende-karten-auf-den-neuen-namen-umstellen).
+steht in der [README](https://github.com/BeGiBue/home-assistant-irrigation-control-card/blob/v3.0.0/README.md#bestehende-karten-auf-den-neuen-namen-umstellen).
 Eine Major-Version bedeutet nicht automatisch Breaking Changes; in dieser Version ist die
 Umbenennung von Kartentyp und Ressource ausdrücklich eine erforderliche Umstellung.
 
