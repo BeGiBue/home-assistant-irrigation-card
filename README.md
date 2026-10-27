@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <strong>Version 3.0.0</strong><br>
+  <strong>Version 3.0.1</strong><br>
   <a href="https://github.com/BeGiBue/home-assistant-irrigation-control-card/actions/workflows/validate.yml"><img src="https://github.com/BeGiBue/home-assistant-irrigation-control-card/actions/workflows/validate.yml/badge.svg" alt="HACS validation"></a>
 </p>
 
