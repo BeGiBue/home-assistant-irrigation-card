@@ -1,0 +1,127 @@
+name: Release
+
+# Zwei Wege zum Release:
+#  1. Tag pushen:            git tag v1.2.3 && git push origin v1.2.3
+#  2. Actions -> Release -> "Run workflow" und die Version (z. B. 1.2.3) eintragen.
+#     Der Workflow legt dann den Tag selbst an.
+# Voraussetzungen: Die Datei VERSION und die Versionskonstante in der JavaScript-Datei
+# stimmen mit der Version überein, und die CHANGELOG.md hat einen Abschnitt "## 1.2.3";
+# er wird zum Release-Text. Die Karte (Dateiname aus hacs.json) wird als Anhang
+# hochgeladen, weil HACS sie aus dem Release lädt.
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version ohne führendes v (z. B. 1.2.3 oder 1.3.0-beta.1)"
+        required: true
+        type: string
+      prerelease:
+        description: "Als Pre-release markieren"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Prüfen & Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Version bestimmen
+        id: v
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PRERELEASE: ${{ inputs.prerelease }}
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            VERSION="${INPUT_VERSION#v}"
+            PRE="${INPUT_PRERELEASE}"
+          else
+            VERSION="${GITHUB_REF_NAME#v}"
+            PRE=false
+          fi
+          if ! echo "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$'; then
+            echo "::error::Ungültige Version: '$VERSION' (erwartet z. B. 1.2.3)"
+            exit 1
+          fi
+          # Versionen mit Suffix (-beta.1, -rc.1 …) sind automatisch Pre-releases
+          case "$VERSION" in *-*) PRE=true ;; esac
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "tag=v$VERSION" >> "$GITHUB_OUTPUT"
+          echo "prerelease=$PRE" >> "$GITHUB_OUTPUT"
+
+      - name: Prüfen, ob der Tag schon existiert
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if git rev-parse -q --verify "refs/tags/${{ steps.v.outputs.tag }}" >/dev/null; then
+            echo "::error::Tag ${{ steps.v.outputs.tag }} existiert bereits."
+            exit 1
+          fi
+
+      - name: Karte und Versionsangaben prüfen
+        id: card
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          FILE="$(node -p "require('./hacs.json').filename")"
+          test -s "$FILE"
+          test "$(tr -d '[:space:]' < VERSION)" = "$VERSION" \
+            || { echo "::error::Datei VERSION passt nicht zu $VERSION"; exit 1; }
+          grep -Fq "\"$VERSION\"" "$FILE" \
+            || { echo "::error::Versionskonstante in $FILE passt nicht zu $VERSION"; exit 1; }
+          node --check "$FILE"
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Tests
+        run: node --test --test-isolation=none tests/security.test.mjs
+
+      # Der Release-Text kommt aus der CHANGELOG.md (Abschnitt "## x.y.z"), nicht aus einem automatischen Diff-Link.
+      # Fehlt der Abschnitt, bricht der Release hier ab, bevor etwas veröffentlicht wird.
+      - name: Release-Text aus dem Changelog
+        env:
+          VERSION: ${{ steps.v.outputs.version }}
+        run: |
+          awk -v v="$VERSION" '
+            /^## / { if (found) exit; if ($2 == v) { found=1; next } }
+            found { print }
+          ' CHANGELOG.md | sed -e :a -e '/^\n*$/{$d;N;ba' -e '}' > "$RUNNER_TEMP/notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/notes.md"; then
+            echo "::error::Kein Abschnitt \"## $VERSION\" mit Inhalt in CHANGELOG.md. Bitte zuerst den Changelog ergänzen."
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/notes.md"
+
+      - name: Release anlegen
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.v.outputs.tag }}
+          PRERELEASE: ${{ steps.v.outputs.prerelease }}
+          FILE: ${{ steps.card.outputs.file }}
+        run: |
+          FLAGS=(--notes-file "$RUNNER_TEMP/notes.md" --title "$TAG")
+          if [ "$PRERELEASE" = "true" ]; then FLAGS+=(--prerelease); else FLAGS+=(--latest); fi
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            # Release existiert schon (z. B. manuell als Entwurf angelegt): Datei und Text ersetzen
+            gh release upload "$TAG" "$FILE" --clobber
+            gh release edit "$TAG" --notes-file "$RUNNER_TEMP/notes.md"
+          else
+            # --target legt den Tag bei workflow_dispatch am aktuellen Commit an;
+            # bei einem Tag-Push existiert er bereits und wird unverändert verwendet.
+            gh release create "$TAG" "$FILE" --target "$GITHUB_SHA" "${FLAGS[@]}"
+          fi
