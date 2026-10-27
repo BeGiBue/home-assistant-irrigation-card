@@ -241,7 +241,7 @@ realer Bedienung prüfen.
 
 ## Bild
 
-Das Standardbild (`images/MP-Rotator-Flyer.webp`, zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-control-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
+Das Standardbild (zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-control-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
 
 ## Version und Security-Review
 
