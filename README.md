@@ -247,11 +247,7 @@ Das Standardbild (`images/MP-Rotator-Flyer.webp`, zugeschnitten und gespiegelt) 
 
 [CHANGELOG.md](CHANGELOG.md) und [RELEASE_NOTES_3.0.0.md](RELEASE_NOTES_3.0.0.md) dokumentieren
 Version 3.0.0. Ergebnisse und Restrisiken des Reviews stehen in
-[SECURITY_REVIEW.md](SECURITY_REVIEW.md). Die Katalogaufnahme bleibt bis zum Merge des
-HACS-Aufnahme-PRs ausstehend; die Migration darf nicht vor der tatsächlichen Verfügbarkeit erfolgen.
-
-Version 3.0.0 verwendet den neuen Kartentyp und Dateinamen. Bestehende Installationen
-benötigen die oben beschriebene Migration; die Umbenennung ersetzt keine HACS-Katalogaufnahme.
+[SECURITY_REVIEW.md](SECURITY_REVIEW.md).
 
 ## Hinweise zu Marken
 

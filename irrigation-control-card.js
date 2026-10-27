@@ -12,6 +12,7 @@ const ZONE_KEYS={"switch.manual_watering":"manual","switch.auto_watering":"auto"
   "sensor.daily_active_water_time":"daily_time","sensor.daily_active_water_use":"daily_use","binary_sensor.watering":"running"};
 const CTRL_KEYS={"binary_sensor.rain_sensor":"rain","sensor.daily_active_water_time":"daily_time","sensor.daily_total_water_use":"daily_use"};
 const OFF=["unavailable","unknown",""];
+const WAIT=90000; // Bestätigungsfrist (ms)
 
 class IrrigationControlCard extends HTMLElement{
   constructor(){super();this.attachShadow({mode:"open"});this._config={...DEF};this._sig="";this._pending=Object.create(null);this._total=Object.create(null);}
@@ -41,7 +42,7 @@ class IrrigationControlCard extends HTMLElement{
     // Restzeit und relative Zeiten minütlich nachführen
     this._tick=setInterval(()=>{this._sig="";this._update();},60000);}
   disconnectedCallback(){clearInterval(this._tick);}
-  setConfig(c){this._config={...DEF,...c};this._sig="";this._built=false;this._update();}
+  setConfig(c){this._config={...DEF,...c};this._sig="";this._update();}
   set hass(h){this._hass=h;this._update();}
   get hass(){return this._hass;}
   // Höhe fest an den Inhalt gebunden: rows "auto", im Layout-Editor nicht verstellbar; nur die Breite ist frei
@@ -52,10 +53,11 @@ class IrrigationControlCard extends HTMLElement{
   _s(id){return id&&this._hass?.states?.[id];}
   _e(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");}
   _on(id){const s=this._s(id);return!!s&&["on","open","opening"].includes(s.state);}
-  _ok(id){const s=this._s(id);return!!s&&!OFF.includes(s.state);}
+  // Zustand nur, wenn verfügbar
+  _v(id){const s=this._s(id);return s&&!OFF.includes(s.state)?s:null;}
+  _ok(id){return!!this._v(id);}
   _more(id){if(id)this.dispatchEvent(new CustomEvent("hass-more-info",{bubbles:true,composed:true,detail:{entityId:id}}));}
-  _f(id){const s=this._s(id);if(!s||OFF.includes(s.state))return"—";try{if(this._hass?.formatEntityState)return this._hass.formatEntityState(s);}catch(_){}const u=s.attributes?.unit_of_measurement;return`${s.state}${u?` ${u}`:""}`;}
-  _loc(){return this._hass?.locale?.language||this._hass?.language||"de-DE";}
+  _f(id){const s=this._v(id);if(!s)return"—";try{if(this._hass?.formatEntityState)return this._hass.formatEntityState(s);}catch(_){}const u=s.attributes?.unit_of_measurement;return`${s.state}${u?` ${u}`:""}`;}
 
   // Hydrawise-Geräte und ihre Entitäten aus der Registry lesen
   _resolve(){
@@ -65,31 +67,30 @@ class IrrigationControlCard extends HTMLElement{
       if(k)r[k]=en.entity_id;else if(d==="valve")r.valve=en.entity_id;else if(d==="binary_sensor"&&!en.translation_key)r.status=en.entity_id;}return r;};
     let ids=(Array.isArray(this._config.zones)?this._config.zones:[this._config.zones]).filter(Boolean);
     if(!ids.length)ids=Object.keys(byDev).filter(id=>devs[id]?.model==="Zone"||pick(byDev[id],ZONE_KEYS).running);
-    const zones=ids.filter(id=>byDev[id]).map(id=>({id,name:devs[id]?.name_by_user||devs[id]?.name||"Zone",ctrl:devs[id]?.via_device_id,...pick(byDev[id],ZONE_KEYS)}));
+    const name=id=>devs[id]?.name_by_user||devs[id]?.name;
+    const zones=ids.filter(id=>byDev[id]).map(id=>({id,name:name(id)||"Zone",ctrl:devs[id]?.via_device_id,...pick(byDev[id],ZONE_KEYS)}));
     const cid=zones.find(z=>z.ctrl)?.ctrl||Object.keys(byDev).find(id=>devs[id]&&devs[id].model!=="Zone");
-    const ctrl={id:cid,name:devs[cid]?.name_by_user||devs[cid]?.name||"",...pick(byDev[cid],CTRL_KEYS)};
-    if(this._config.status_entity)ctrl.status=this._config.status_entity;
-    if(this._config.rain_entity)ctrl.rain=this._config.rain_entity;
-    if(this._config.daily_time_entity)ctrl.daily_time=this._config.daily_time_entity;
-    if(this._config.water_use_entity)ctrl.daily_use=this._config.water_use_entity;
+    const ctrl={id:cid,name:name(cid)||"",...pick(byDev[cid],CTRL_KEYS)};
+    // Konfigurierte Entitäten haben Vorrang
+    for(const[key,opt]of[["status","status_entity"],["rain","rain_entity"],["daily_time","daily_time_entity"],["daily_use","water_use_entity"]])if(this._config[opt])ctrl[key]=this._config[opt];
     return{zones,ctrl};
   }
 
   _update(){
-    if(!this.shadowRoot||!this._config||!this._hass)return;
+    if(!this._hass)return;
     const r=this._resolve();this._zones=r.zones;this._ctrl=r.ctrl;
     const ids=[this._config.pump_entity,this._config.power_entity,this._config.energy_entity,...Object.values(r.ctrl),...r.zones.flatMap(z=>Object.values(z))];
     // Anfrage erledigt, sobald der Zustand passt (oder nach 90 s aufgeben)
     for(const z of r.zones){const p=this._pending[z.id];if(p?.accepted&&(this._running(z)===(p.kind==="start")||Date.now()>p.until))delete this._pending[z.id];}
     const sig=JSON.stringify(this._config)+ids.map(id=>{const s=this._s(id);return s?`${s.state}|${s.last_changed}`:"-";}).join("§")+JSON.stringify(this._pending)+(this._hass.language||"");
-    if(sig===this._sig&&this._built)return;
+    if(sig===this._sig)return;
     this._sig=sig;this._render();
   }
 
   _running(z){return z.running?this._on(z.running):this._on(z.valve)||this._on(z.manual);}
   // Restzeit: Hydrawise liefert nur alle 5 min einen neuen Wert – dazwischen seit der letzten Änderung herunterzählen
   _remaining(z){
-    const s=this._s(z.remaining);if(!s||OFF.includes(s.state))return NaN;
+    const s=this._v(z.remaining);if(!s)return NaN;
     const n=Number(s.state),el=(Date.now()-new Date(s.last_changed).getTime())/60000;
     return Number.isFinite(n)?Math.max(0,Math.round(n-(el>0?el:0))):NaN;
   }
@@ -97,13 +98,13 @@ class IrrigationControlCard extends HTMLElement{
     if(!Number.isFinite(sec))return"—";const m=Math.round(sec/60),h=Math.floor(m/60);
     return h?`${h} h${m%60?` ${m%60} min`:""}`:`${m} min`;
   }
-  _secs(id){const s=this._s(id);if(!s||OFF.includes(s.state))return NaN;const n=Number(s.state),u=s.attributes?.unit_of_measurement;
+  _secs(id){const s=this._v(id);if(!s)return NaN;const n=Number(s.state),u=s.attributes?.unit_of_measurement;
     return!Number.isFinite(n)?NaN:u==="min"?n*60:u==="h"?n*3600:u==="d"?n*86400:n;}
   // Zeitpunkt als „Heute 05:00“ / „Morgen 05:00“ / „Sa., 10.10. 05:00“ plus relative Angabe
   _when(id){
-    const s=this._s(id);if(!s||OFF.includes(s.state))return{main:"—",rel:""};
+    const s=this._v(id);if(!s)return{main:"—",rel:""};
     const d=new Date(s.state);if(isNaN(d))return{main:this._f(id),rel:""};
-    const loc=this._loc(),now=new Date(),day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
+    const loc=this._hass?.locale?.language||this._hass?.language||"de-DE",now=new Date(),day=x=>new Date(x.getFullYear(),x.getMonth(),x.getDate()).getTime();
     const dd=Math.round((day(d)-day(now))/86400000),time=d.toLocaleTimeString(loc,{hour:"2-digit",minute:"2-digit"});
     const de=loc.startsWith("de"),main=dd===0?`${de?"Heute":"Today"} ${time}`:dd===1?`${de?"Morgen":"Tomorrow"} ${time}`:`${d.toLocaleDateString(loc,{weekday:"short",day:"2-digit",month:"2-digit"})} ${time}`;
     const sec=(d-now)/1000,a=Math.abs(sec),rtf=new Intl.RelativeTimeFormat(loc,{numeric:"auto",style:"short"});
@@ -112,6 +113,15 @@ class IrrigationControlCard extends HTMLElement{
   }
   _durations(){const d=this._config.durations;return[...new Set((Array.isArray(d)?d.join(","):String(d??"")).split(/[,;\s]+/).map(Number).filter(n=>Number.isInteger(n)&&n>0&&n<=1440))].sort((a,b)=>a-b).slice(0,6);}
 
+  _online(z){return this._ok(z.running||z.manual||z.valve);}
+  // Stoppziel: verfügbarer manueller Schalter, sonst Ventil
+  _stopTarget(z){return this._ok(z.manual)?z.manual:this._ok(z.valve)?z.valve:null;}
+  // Nur den eigenen Wartezustand abschließen, neuere Aufträge bleiben
+  _settle(z,pending,ok){
+    if(this._pending[z.id]===pending){if(ok){pending.accepted=true;pending.until=Date.now()+WAIT;}else delete this._pending[z.id];this._update();}
+    if(ok)this._refresh(z);
+    return ok;
+  }
   async _call(domain,service,data){try{await this._hass.callService(domain,service,data);return true;}catch(err){console.error("Irrigation Control Card:",err);return false;}}
   // Hydrawise fragt nur alle 5 min ab – nach einer Aktion sofort neu laden lassen
   _refresh(z){clearTimeout(this._rt);this._rt=setTimeout(()=>{const ids=[z.running,z.manual,z.remaining,z.valve].filter(Boolean);
@@ -121,29 +131,24 @@ class IrrigationControlCard extends HTMLElement{
     // min=0 ist ausschließlich der ausdrücklich beschriftete Controller-Standardlauf.
     if(!z||!Number.isInteger(min)||min<0||min>1440||this._pending[z.id])return false;
     if(min>0&&!z.running)return false;
-    if(!this._ok(z.running||z.manual||z.valve))return false;
-    const pending={kind:"start",until:Date.now()+90000,accepted:false};
+    if(!this._online(z))return false;
+    const pending={kind:"start",until:Date.now()+WAIT,accepted:false};
     this._pending[z.id]=pending;this._total[z.id]=min;this._update();
     pending.request=z.running?this._call("hydrawise","start_watering",{entity_id:z.running,duration:min})
       :z.manual?this._call("homeassistant","turn_on",{entity_id:z.manual}):this._call("valve","open_valve",{entity_id:z.valve});
-    const ok=await pending.request;
-    if(this._pending[z.id]===pending){if(ok){pending.accepted=true;pending.until=Date.now()+90000;}else delete this._pending[z.id];this._update();}
-    if(ok)this._refresh(z);
-    return ok;
+    return this._settle(z,pending,await pending.request);
   }
   async _stop(z){
     if(!z||this._pending[z.id]?.kind==="stop")return false;
-    const manual=this._ok(z.manual)?z.manual:null,valve=this._ok(z.valve)?z.valve:null;
-    if(!manual&&!valve)return false;
+    const target=this._stopTarget(z);
+    if(!target)return false;
     const starting=this._pending[z.id]?.kind==="start"?this._pending[z.id].request:null;
-    const pending={kind:"stop",until:Date.now()+90000,accepted:false};
+    const pending={kind:"stop",until:Date.now()+WAIT,accepted:false};
     this._pending[z.id]=pending;this._update();
     // Der Stopp muss nach einem bereits gesendeten Start beim Controller ankommen.
     if(starting)await starting;
-    const ok=manual?await this._call("homeassistant","turn_off",{entity_id:manual}):await this._call("valve","close_valve",{entity_id:valve});
-    if(this._pending[z.id]===pending){if(ok){pending.accepted=true;pending.until=Date.now()+90000;}else delete this._pending[z.id];this._update();}
-    if(ok)this._refresh(z);
-    return ok;
+    const ok=target===z.manual?await this._call("homeassistant","turn_off",{entity_id:target}):await this._call("valve","close_valve",{entity_id:target});
+    return this._settle(z,pending,ok);
   }
   _toggle(id){if(this._ok(id))this._call("homeassistant",this._on(id)?"turn_off":"turn_on",{entity_id:id});}
 
@@ -153,18 +158,18 @@ class IrrigationControlCard extends HTMLElement{
   _sw(on){return`<span class="sw${on?" on":""}"><i></i></span>`;}
 
   _zone(z){
-    const run=this._running(z),p=this._pending[z.id],auto=this._s(z.auto)?this._on(z.auto):true,online=this._ok(z.running||z.manual||z.valve);
+    const run=this._running(z),p=this._pending[z.id],auto=this._s(z.auto)?this._on(z.auto):true,online=this._online(z),dis=online?"":"disabled";
     const st=!online?["error","Offline"]:p?["primary",p.kind==="start"?"Startet …":"Stoppt …"]:run?["primary","Bewässert"]:!auto?["warning","Pausiert"]:["success","Bereit"];
     const rem=this._remaining(z);
     if(run&&Number.isFinite(rem))this._total[z.id]=Math.max(this._total[z.id]||0,rem);else if(!run&&!p)delete this._total[z.id];
     const tot=this._total[z.id],pct=run&&Number.isFinite(rem)&&tot?Math.max(2,Math.min(100,rem/tot*100)):0;
     const nx=this._when(z.next),today=this._secs(z.daily_time);
     const row=(l,id,v,sm,tone)=>`<button class="drow${tone?` tone-${tone}`:""}" data-more="${this._e(id)}"><span>${l}</span><b>${this._e(v)}${sm?` <em>${this._e(sm)}</em>`:""}</b></button>`;
-    const canStop=this._ok(z.manual)||this._ok(z.valve);
+    const canStop=!!this._stopTarget(z);
     const run_box=run||p?`<div class="runbox">
         ${this._s(z.remaining)?`<div class="rt"><span class="lbl">Restzeit</span><span class="val"><b>${Number.isFinite(rem)?rem:"—"}</b><em>min</em></span><i class="bar"><u style="width:${pct}%"></u></i></div>`:`<div class="rt"><span class="lbl">Bewässerung läuft</span></div>`}
         <button class="stop" data-stop="${this._e(z.id)}" ${p?.kind==="stop"||!canStop?"disabled":""}><ha-icon icon="mdi:stop"></ha-icon><b>Stopp</b></button></div>`
-      :`<div class="starts"><span class="lbl">Manuell starten</span><div class="durs">${(z.running?this._durations():[]).map(m=>`<button class="dur" data-start="${this._e(z.id)}" data-min="${m}" ${!online?"disabled":""}><b>${m}</b><em>min</em></button>`).join("")||`<button class="dur" data-start="${this._e(z.id)}" data-min="0" ${!online?"disabled":""}><b>Start</b><em>Controller-Vorgabe</em></button>`}</div></div>`;
+      :`<div class="starts"><span class="lbl">Manuell starten</span><div class="durs">${(z.running?this._durations():[]).map(m=>`<button class="dur" data-start="${this._e(z.id)}" data-min="${m}" ${dis}><b>${m}</b><em>min</em></button>`).join("")||`<button class="dur" data-start="${this._e(z.id)}" data-min="0" ${dis}><b>Start</b><em>Controller-Vorgabe</em></button>`}</div></div>`;
     return`<section class="panel zone tone-${st[0]}${run?" running":""}">
       <header><span class="chip"><ha-icon icon="mdi:sprinkler-variant"></ha-icon></span><h3>${this._e(z.name)}</h3><button class="pill" data-more="${this._e(z.running||z.manual)}"><i class="dot"></i><b>${this._e(st[1])}</b></button></header>
       ${run_box}
@@ -211,7 +216,6 @@ class IrrigationControlCard extends HTMLElement{
     this.shadowRoot.querySelectorAll("[data-toggle]").forEach(x=>x.onclick=()=>this._toggle(x.dataset.toggle));
     this.shadowRoot.querySelectorAll("[data-start]").forEach(x=>x.onclick=()=>this._start(by(x.dataset.start),Number(x.dataset.min)));
     this.shadowRoot.querySelectorAll("[data-stop]").forEach(x=>x.onclick=()=>this._stop(by(x.dataset.stop)));
-    this._built=true;
   }
 
   static get css(){return`
