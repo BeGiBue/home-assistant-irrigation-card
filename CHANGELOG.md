@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.0.1
+
+- Aufräumarbeiten ohne Funktionsänderung: interne Hilfsfunktionen für Start-/Stopp-Abschluss, Stopp-Ziel und Online-Prüfung zusammengeführt, toter Code entfernt. Konfiguration, Kartentyp (`custom:irrigation-control-card`) und Verhalten bleiben unverändert.
+- Repository verschlankt: alte Release-Notes (1.0.0–2.0.0), nicht mehr benötigte Logo-Dateien, das ungenutzte Quellbild des Standardbildes und der Einmal-Publisher für 3.0.0 entfernt; Security-Review gekürzt.
+
 ## 3.0.0
 
 - Umbenennung in **Irrigation Control Card**, damit HACS und der Karteneditor das Projekt von der bereits vorhandenen Irrigation Card von `kratochj` unterscheiden.
@@ -72,7 +77,7 @@ Keine Änderungen an der Funktionsweise der Karte oder Integration.
 - Erste Veröffentlichung der Irrigation Card für Hunter Hydrawise.
 - Zonen als Hydrawise-Geräte im nativen Geräte-Picker wählbar; ohne Auswahl alle Zonen automatisch.
 - Entitäten werden über die Entity-Registry (`translation_key`) zugeordnet.
-- Manueller Start mit wählbaren Dauern, Stopp, Automatik-Schalter, Restzeit mit Fortschrittsbalken.
+- Manueller Start mit wählbaren Dauern (5 / 10 / 15 / 30 min), Stopp, Automatik-Schalter, Restzeit mit Fortschrittsbalken.
 - Sofortiges Update nach Start/Stopp; Restzeit wird zwischen den Abfragen heruntergezählt.
 - Controller-Kacheln (Status, Regensensor, Tageswerte, aktive Zonen) und optionale Pumpe.
 - Eingebettetes Standardbild (Hunter MP Rotator) als Banner oder im Kartenhintergrund, eigene Bild-URL möglich.
