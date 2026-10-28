@@ -243,11 +243,10 @@ realer Bedienung prüfen.
 
 Das Standardbild (zugeschnitten und gespiegelt) ist direkt in der JavaScript-Datei eingebettet, da HACS nur `irrigation-control-card.js` installiert. Mit `show_image: false` wird es ausgeblendet.
 
-## Version und Security-Review
+## Änderungen
 
 [CHANGELOG.md](CHANGELOG.md) und [RELEASE_NOTES_3.0.0.md](RELEASE_NOTES_3.0.0.md) dokumentieren
-Version 3.0.0. Ergebnisse und Restrisiken des Reviews stehen in
-[SECURITY_REVIEW.md](SECURITY_REVIEW.md).
+Version 3.0.0 und die Migration.
 
 ## Hinweise zu Marken
 
