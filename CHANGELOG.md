@@ -3,7 +3,7 @@
 ## 3.0.1
 
 - Aufräumarbeiten ohne Funktionsänderung: interne Hilfsfunktionen für Start-/Stopp-Abschluss, Stopp-Ziel und Online-Prüfung zusammengeführt, toter Code entfernt. Konfiguration, Kartentyp (`custom:irrigation-control-card`) und Verhalten bleiben unverändert.
-- Repository verschlankt: alte Release-Notes (1.0.0–2.0.0), nicht mehr benötigte Logo-Dateien, das ungenutzte Quellbild des Standardbildes und der Einmal-Publisher für 3.0.0 entfernt; Security-Review gekürzt.
+- Repository verschlankt: alte Release-Notes (1.0.0–2.0.0), nicht mehr benötigte Logo-Dateien, das ungenutzte Quellbild des Standardbildes und der Einmal-Publisher für 3.0.0 entfernt.
 
 ## 3.0.0
 
@@ -25,7 +25,6 @@
 - Sicherheitskorrektur: Stopp bleibt während der Startbestätigung bedienbar, sofern ein gültiges Ziel existiert; Aufträge werden geordnet und Wartezustände erst nach Dienstannahme bestätigt.
 - Sicherheitskorrektur: Ein noch unbeantworteter Start-/Stoppauftrag bleibt auch nach 90 Sekunden gesperrt und gibt keinen konkurrierenden Start frei.
 - Registry-/Aktionsindizes gegen geerbte Objektschlüssel gehärtet, Dokumentationslink korrigiert und Security-/Browser-Regressionstests mit gemockten Diensten ergänzt.
-- Security-Review mit Datei-/Zeilenangaben, Korrekturen und Prüfgrenzen in `SECURITY_REVIEW.md` dokumentiert.
 
 ## 1.1.4
 
